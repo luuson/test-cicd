@@ -22,4 +22,4 @@ jobs:
           script: |
             cd /var/www/app
             git pull
-            docker compose up -d --build
+            
