@@ -23,6 +23,8 @@ jobs:
             if [ ! -d "/var/www/app/.git" ]; then
               git clone https://github.com/luuson/test-cicd.git /var/www/app
             else
-              cd /var/www/app
-              git pull origin main
+              cd crypto-dashboard
+              git pull
+              docker compose down
+              docker compose up -d --build
             fi
