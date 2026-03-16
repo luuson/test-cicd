@@ -20,11 +20,13 @@ jobs:
           username: ec2-user
           key: ${{ secrets.SSH_KEY }}
           script: |
-            if [ ! -d "/var/www/app/.git" ]; then
+            cd /home/ec2-user
+            if [ ! -d "crypto-dashboard"  ]; then
               git clone https://github.com/luuson/test-cicd.git crypto-dashboard
             else
               cd crypto-dashboard
               git pull
-              docker compose down
-              docker compose up -d --build
+
             fi
+            docker compose down
+            docker compose up -d --build
