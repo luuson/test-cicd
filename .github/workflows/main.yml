@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             if [ ! -d "/var/www/app/.git" ]; then
-              git clone git@github.com:luuson/test-cicd.git/var/www/app
+              git clone https://github.com/luuson/test-cicd.git /var/www/app
             else
               cd /var/www/app
               git pull origin main
