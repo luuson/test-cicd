@@ -8,47 +8,35 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read   # tốt hơn cho checkout
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4   # ← nâng cấp lên v4
+        uses: actions/checkout@v4
 
-      - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v1   # hoặc @v1.0.3 nếu muốn pin version cụ thể
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SV_IP }}
-          username: ec2-user             # thay bằng ubuntu nếu server là Ubuntu
+          username: ec2-user
           key: ${{ secrets.SSH_KEY }}
-          # fingerprint: '...'           # optional: thêm host key fingerprint để an toàn hơn
           script: |
-            set -e  # dừng ngay nếu có lệnh lỗi
+            set -e
 
             cd /home/ec2-user
 
-            # Clone hoặc pull repo
             if [ ! -d "crypto-dashboard" ]; then
-              echo "Cloning repository..."
+              echo "Cloning repo..."
               git clone https://github.com/luuson/test-cicd.git crypto-dashboard
-            else
-              echo "Pulling latest changes..."
-              cd crypto-dashboard
-              git pull --ff-only origin main   # --ff-only để an toàn hơn
             fi
 
             cd crypto-dashboard
 
-            # Optional: login registry nếu dùng private image
-            # docker login ... 
+            echo "Pull latest code..."
+            git pull --ff-only origin main
 
-            echo "Stopping old containers..."
-            docker compose down
+            echo "Deploy Docker..."
+            sudo docker compose down
+            sudo docker compose pull
+            sudo docker compose up -d --build --remove-orphans
 
-            echo "Pulling latest images..."
-            docker compose pull   # ← thêm bước này rất quan trọng
-
-            echo "Starting services..."
-            docker compose up -d --build --remove-orphans   # ← thêm --remove-orphans
-
-            echo "Deployment completed!"
+            echo "Done!"
