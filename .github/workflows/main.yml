@@ -1,4 +1,4 @@
-name: CI CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -8,25 +8,47 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read   # tốt hơn cho checkout
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4   # ← nâng cấp lên v4
 
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1   # hoặc @v1.0.3 nếu muốn pin version cụ thể
         with:
           host: ${{ secrets.SV_IP }}
-          username: ec2-user
+          username: ec2-user             # thay bằng ubuntu nếu server là Ubuntu
           key: ${{ secrets.SSH_KEY }}
+          # fingerprint: '...'           # optional: thêm host key fingerprint để an toàn hơn
           script: |
+            set -e  # dừng ngay nếu có lệnh lỗi
+
             cd /home/ec2-user
-            if [ ! -d "crypto-dashboard"  ]; then
+
+            # Clone hoặc pull repo
+            if [ ! -d "crypto-dashboard" ]; then
+              echo "Cloning repository..."
               git clone https://github.com/luuson/test-cicd.git crypto-dashboard
             else
+              echo "Pulling latest changes..."
               cd crypto-dashboard
-              git pull
-
+              git pull --ff-only origin main   # --ff-only để an toàn hơn
             fi
+
+            cd crypto-dashboard
+
+            # Optional: login registry nếu dùng private image
+            # docker login ... 
+
+            echo "Stopping old containers..."
             docker compose down
-            docker compose up -d --build
+
+            echo "Pulling latest images..."
+            docker compose pull   # ← thêm bước này rất quan trọng
+
+            echo "Starting services..."
+            docker compose up -d --build --remove-orphans   # ← thêm --remove-orphans
+
+            echo "Deployment completed!"
