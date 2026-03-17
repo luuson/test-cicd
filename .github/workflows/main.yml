@@ -25,6 +25,8 @@ jobs:
           script: |
             set -e  # dừng ngay nếu có lệnh lỗi
 
+            cd /home/ec2-user
+
             # Clone hoặc pull repo
             if [ ! -d "crypto-dashboard" ]; then
               echo "Cloning repository..."
