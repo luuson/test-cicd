@@ -2,8 +2,12 @@ FROM python:3.11
 
 WORKDIR /app
 
-COPY app /app
+COPY app /requirements.txt ./
 
 RUN pip install -r requirements.txt
 
-CMD ["gunicorn","-b","0.0.0.0:5000","app:app"]
+COPY app .
+
+EXPOSE 5000
+
+CMD ["gunicorn","app:app"]
