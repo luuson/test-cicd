@@ -1,42 +1,41 @@
-name: CI/CD Pipeline
+name: Build & Push to ECR
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SV_IP }}
-          username: ec2-user
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            set -e
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-            cd /home/ec2-user
+    - name: Login to ECR
+      run: |
+        aws ecr get-login-password \
+        | docker login \
+        --username AWS \
+        --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com
 
-            if [ ! -d "crypto-dashboard" ]; then
-              echo "Cloning repo..."
-              git clone https://github.com/luuson/test-cicd.git crypto-dashboard
-            fi
+    - name: Build Docker image
+      run: |
+        docker build -t crypto-dashboard .
 
-            cd crypto-dashboard
+    - name: Tag image
+      run: |
+        docker tag crypto-dashboard:latest \
+        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/crypto-dashboard:latest
 
-            echo "Pull latest code..."
-            git pull --ff-only origin main
-
-            echo "Deploy Docker..."
-            sudo docker compose down
-            sudo docker compose pull
-            sudo docker compose up -d --build --remove-orphans
-
-            echo "Done!"
+    - name: Push image to ECR
+      run: |
+        docker push \
+        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/crypto-dashboard:latest
