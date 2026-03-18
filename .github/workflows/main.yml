@@ -28,14 +28,14 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t crypto-dashboard .
+        docker build -t crypto_dashboard .
 
     - name: Tag image
       run: |
-        docker tag crypto-dashboard:latest \
-        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/crypto-dashboard:latest
+        docker tag crypto_dashboard:latest \
+        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/crypto_dashboard:latest
 
     - name: Push image to ECR
       run: |
         docker push \
-        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/crypto-dashboard:latest
+        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/crypto_dashboard:latest
