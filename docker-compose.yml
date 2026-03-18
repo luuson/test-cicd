@@ -4,7 +4,7 @@ services:
 
   web:
     build: .
-    container_name: crypto-dashboard-web
+    image: crypto-dashboard-web
     restart: always
     expose:
       - "5000"
