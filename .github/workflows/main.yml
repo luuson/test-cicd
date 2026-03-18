@@ -28,7 +28,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t crypto_dashboard .
+        docker build -t crypto-dashboard-web .
 
     - name: Tag image
       run: |
